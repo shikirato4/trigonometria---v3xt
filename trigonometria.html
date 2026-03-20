@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOCCENT // Trigonometría de Campo // by v3xt</title>
+<title>LOCCENT // Trigonometría de Campo</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 <style>
   :root{--blue:#00d4ff;--cyan:#0ff;--orange:#ff6a00;--red:#ff2244;--green:#00ff88;--dark:#030d1a;--panel:#050f1f;--border:#0a3060;--text:#a0d4f5;--white:#e8f4ff;}
@@ -92,6 +92,9 @@
   .vol-slider{-webkit-appearance:none;appearance:none;width:80px;height:3px;background:rgba(0,212,255,.3);border-radius:2px;outline:none;cursor:pointer;}
   .vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--cyan);cursor:pointer;box-shadow:0 0 6px rgba(0,212,255,.5);}
   .volume-wrap{display:flex;align-items:center;gap:6px;}
+  .title-credit{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--orange);letter-spacing:4px;margin-top:6px;opacity:.7;}
+  .title-credit::before{content:'// ';opacity:.4;}
+  .title-credit::after{content:' //';opacity:.4;}
   .music-file-btn{cursor:pointer;font-size:16px;opacity:.6;transition:opacity .2s;padding:2px 4px;}
   .music-file-btn:hover{opacity:1;}
 </style>
@@ -101,6 +104,7 @@
   <header>
     <div class="title-main">⚡ Trigonometría de Campo</div>
     <div class="title-sub">Sistema de Clasificación K // Unidad de Cálculo Táctico</div>
+    <div class="title-credit">by v3xt</div>
   </header>
   <div class="status-bar">
     <span><span class="sdot"></span>SISTEMA ACTIVO</span>
@@ -937,23 +941,49 @@ function hint(){
 document.addEventListener('keydown',e=>{if(e.key==='Enter')check();if(e.key==='n'||e.key==='N')gen();});
 
 // ─────────────────────────────────────────────
-//  MUSIC PLAYER
+//  MUSIC PLAYER — autoplay al primer click/teclado
 // ─────────────────────────────────────────────
 const bgm = document.getElementById('bgm');
 bgm.volume = 0.4;
+let musicStarted = false;
+
+function startMusicIfNeeded(){
+  if(musicStarted) return;
+  bgm.play().then(()=>{
+    musicStarted = true;
+    document.getElementById('music-btn').classList.add('playing');
+    document.getElementById('music-icon').textContent='⏸';
+    document.getElementById('music-waves').classList.add('active');
+  }).catch(()=>{});
+}
+
+// Inicia música en el primer click o tecla en cualquier parte de la página
+document.addEventListener('click',   startMusicIfNeeded, {once:false});
+document.addEventListener('keydown',  startMusicIfNeeded, {once:false});
+document.addEventListener('touchstart',startMusicIfNeeded,{once:false});
+
+// También intenta al cargar (puede funcionar en algunos navegadores)
+window.addEventListener('load', ()=>{
+  bgm.play().then(()=>{
+    musicStarted = true;
+    document.getElementById('music-btn').classList.add('playing');
+    document.getElementById('music-icon').textContent='⏸';
+    document.getElementById('music-waves').classList.add('active');
+  }).catch(()=>{
+    // Navegador bloqueó autoplay — esperará primer interaction
+  });
+});
 
 function toggleMusic(){
-  const btn = document.getElementById('music-btn');
-  const icon = document.getElementById('music-icon');
+  const btn   = document.getElementById('music-btn');
+  const icon  = document.getElementById('music-icon');
   const waves = document.getElementById('music-waves');
   if(bgm.paused){
     bgm.play().then(()=>{
+      musicStarted = true;
       btn.classList.add('playing');
       icon.textContent='⏸';
       waves.classList.add('active');
-    }).catch(()=>{
-      // autoplay blocked — user already clicked so should work
-      console.warn('Reproducción bloqueada por el navegador');
     });
   } else {
     bgm.pause();
@@ -963,18 +993,16 @@ function toggleMusic(){
   }
 }
 
-function setVol(v){
-  bgm.volume = parseFloat(v);
-}
+function setVol(v){ bgm.volume = parseFloat(v); }
 
 function loadFile(input){
   const file = input.files[0];
   if(!file) return;
-  const url = URL.createObjectURL(file);
-  bgm.src = url;
+  bgm.src = URL.createObjectURL(file);
   bgm.load();
   document.getElementById('music-title').textContent = file.name;
   bgm.play().then(()=>{
+    musicStarted = true;
     document.getElementById('music-btn').classList.add('playing');
     document.getElementById('music-icon').textContent='⏸';
     document.getElementById('music-waves').classList.add('active');
